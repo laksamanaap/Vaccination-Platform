@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\SpotVaccines;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Regional extends Model
 {
@@ -15,6 +16,11 @@ class Regional extends Model
     public function spots()
     {
         return $this->hasMany(Spots::class, 'regional_id', 'id');
+    }
+
+   public function spot_vaccine()
+    {
+        return $this->belongsTo(SpotVaccines::class, 'id');
     }
 
     use HasFactory;

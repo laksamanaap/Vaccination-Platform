@@ -15,18 +15,18 @@ class SpotsController extends Controller
 
         $validator = Validator::make($request->all(), [
             'token' => 'required|string',
-            'date' => 'required|string'
+            // 'date' => 'required|string'
         ]);
 
         if ($validator->fails()) {
-            return response()->json([$validator->erros()]);
+            return response()->json([$validator->errors()]);
         }
 
         $inputToken = $request->input('token');
         $user = User::where('login_tokens', $inputToken)->first();
         $userRegionalId = $user->regional_id;
 
-        $spot = Regional::with('spots')->find($userRegionalId);
+        $spot = Regional::with('spots.spot_vaccine.vaccine')->find($userRegionalId);
 
         return response()->json($spot,200);
 
