@@ -17,7 +17,9 @@ class VacinationController extends Controller
         $validator = Validator::make($request->all(), [
             'token' => "required|string",
             'spot_id' => "required|string",
-            'date' => 'required|string'
+            'date' => 'required|string',
+            'vaccine_id' => 'required|string',
+            'doctor_id' => 'required|string'
         ]);
 
         if ($validator->fails()) {
@@ -34,17 +36,21 @@ class VacinationController extends Controller
 
         // Check user vaccination
         $societyIdCount = Vacination::where('society_id', $userSocietyId)->count();
-
-        // Count Day
-
+        
         if ($consultationStatus === "pending") {
             return response()->json(['message' => 'Your consultation must be accepted by doctor before'],422);
         } else if($societyIdCount >= 2) {
             return response()->json(['message' => 'Society has been 2x vaccinated'],422);
         } else {
-            $formData = $request->only(['spot_id','date']);
+            $formData = $request->only(['spot_id','date','vaccine_id','doctor_id']);
             $formData['society_id'] = $userSocietyId;
 
+            // Handle add dose
+            $existingDose = Vacination::where('society_id', $userSocietyId)->max('dose');
+           
+            // Increment dose when user store vaccination again
+            $formData['dose'] = $existingDose + 1;
+            
             $vaccinationData = Vacination::create($formData);
             $vaccinationData->save();
 
@@ -57,52 +63,26 @@ class VacinationController extends Controller
 
     public function getVaccination(Request $request)
     {
-        $vaccinations = Vacination::with(['spots.regional', 'vaccine', 'medicals'])
+
+        $validator = Validator::make($request->all(), [
+            'token' => "required|string"
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([$validator->errors()],422);
+        }
+
+        $inputToken = $request->input('token');
+        $user = User::where('login_tokens', $inputToken)->first();
+        $userSocietyId = $user->id;
+
+        $vaccinations = Vacination::where('society_id', $userSocietyId)
+        ->with(['spots.regional', 'vaccine', 'medicals'])
         ->get();
 
         if (!$vaccinations) {
             return response()->json(['error' => 'Vaccination not found'], 404);
         }
-
-        $response = [
-        'vaccinations' => collect($vaccinations)->map(function ($vaccination) {
-        return [
-            'id' => $vaccination->id,
-            'dose' => $vaccination->dose,
-            'date' => $vaccination->date,
-            'society_id' => $vaccination->society_id,
-            'spot_id' => $vaccination->spot_id,
-            'vaccine_id' => $vaccination->vaccine_id,
-            'doctor_id' => $vaccination->doctor_id,
-            'officer_id' => $vaccination->officer_id,
-            // 'spots' => collect($vaccination->spots)->map(function ($spot) {
-            //     return [
-            //         'id' => $spot->id,
-            //         'regional_id' => $spot->regional_id,
-            //         'name' => $spot->name,
-            //         'address' => $spot->address,
-            //         'serve' => $spot->serve,
-            //         'capacity' => $spot->capacity,
-            //         'regional' => [
-            //             'id' => $spot->regional->id,
-            //             'province' => $spot->regional->province,
-            //             'district' => $spot->regional->district,
-            //         ],
-            //     ];
-            //     })->toArray(),
-                // 'vaccine' => [
-                //     'id' => $vaccination->vaccine->id,
-                //     'name' => $vaccination->vaccine->name,
-                // ],
-                // 'vaccinator' => [
-                //     'id' => $vaccination->medicals->id,
-                //     'role' => $vaccination->medicals->role,
-                //     'name' => $vaccination->medicals->name,
-                // ],
-                'second' => null,
-            ];
-            })->toArray(),
-        ];
 
       return response()->json($vaccinations , 200);
 

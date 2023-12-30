@@ -14,5 +14,10 @@ class Consultation extends Model
 
     public $timestamps = false;
 
+    public function doctor()
+    {
+        return $this->belongsTo(Medicals::class, 'doctor_id');
+    }
+
     use HasFactory;
 }

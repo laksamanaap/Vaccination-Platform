@@ -34,7 +34,7 @@ class AuthController extends Controller
 
             return response()->json($user,200);
         } else {
-            return response()->json(['Error' => 'Try to check your id_card_number or password']);
+            return response()->json(['error' => 'Try to check your id_card_number or password'],404);
         }
     }
 

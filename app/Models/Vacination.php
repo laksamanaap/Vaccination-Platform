@@ -26,22 +26,22 @@ class Vacination extends Model
 
     public function spots()
     {
-        return $this->hasMany(Spots::class, 'id');
+        return $this->belongsTo(Spots::class, 'spot_id');
     }
 
     public function medicals()
     {
-        return $this->hasOne(Medicals::class, 'id');
+        return $this->belongsTo(Medicals::class, 'doctor_id');
     }
 
     public function vaccine()
     {
-        return $this->hasOne(Vaccine::class, 'id');
+        return $this->belongsTo(Vaccine::class, 'vaccine_id');
     }
 
     public function society()
     {
-        return $this->hasMany(User::class, 'id');
+        return $this->hasMany(User::class, 'society_id');
     }
 
 
