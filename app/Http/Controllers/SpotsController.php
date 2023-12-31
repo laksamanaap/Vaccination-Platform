@@ -15,7 +15,6 @@ class SpotsController extends Controller
 
         $validator = Validator::make($request->all(), [
             'token' => 'required|string',
-            // 'date' => 'required|string'
         ]);
 
         if ($validator->fails()) {
@@ -35,10 +34,19 @@ class SpotsController extends Controller
     public function getDetailVacinationSpots(Request $request, $id)
     {
 
+        $date = $request->input('date');
+
         $spotVacinationsCount = Spots::withCount('vaccinations_count as total_doses')
         ->with('vaccinations_count')
         ->find($id);
 
+        // Handle get vaccination by date
+        $vaccinationByDate = Spots::with(['vaccinations_count' => function ($query) use ($date) {
+        $query->whereDate('date', $date);
+        }])
+        ->find($id);
+
+        // Handle get total dose
         $totalDose = $spotVacinationsCount->total_doses;
 
         $spot = Spots::with('available_vaccine.vaccine')
@@ -51,7 +59,8 @@ class SpotsController extends Controller
         return response()->json([
             'date' => $request->input('date'),
             'spot' => $spot,
-            'vaccinations_list' => $spotVacinationsCount->vaccinations_count,
+            'vaccinations_count_list' => $spotVacinationsCount->vaccinations_count,
+            'vaccination_list_date' => $vaccinationByDate->vaccinations_count,
             'vaccinations_count' => $totalDose
         ],200); 
 
