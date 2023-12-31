@@ -34,6 +34,14 @@ class SpotsController extends Controller
     public function getDetailVacinationSpots(Request $request, $id)
     {
 
+        $validator = Validator::make($request->all(), [
+            'date' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([$validator->errors()]);
+        }
+
         $date = $request->input('date');
 
         $spotVacinationsCount = Spots::withCount('vaccinations_count as total_doses')
@@ -49,7 +57,7 @@ class SpotsController extends Controller
         // Handle get total dose
         $totalDose = $spotVacinationsCount->total_doses;
 
-        $spot = Spots::with('available_vaccine.vaccine')
+        $spot = Spots::with('spot_vaccine.vaccine')
         ->find($id);
 
         if (!$spot) {
