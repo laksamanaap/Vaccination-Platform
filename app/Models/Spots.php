@@ -29,7 +29,7 @@ class Spots extends Model
 
     }
 
-    public function spot_vaccine()
+    public function available_vaccine()
     {
         return $this->belongsTo(SpotVaccines::class, 'id');
     }

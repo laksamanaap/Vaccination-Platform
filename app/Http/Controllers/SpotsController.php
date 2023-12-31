@@ -35,8 +35,14 @@ class SpotsController extends Controller
     public function getDetailVacinationSpots(Request $request, $id)
     {
 
-        $spotVacinationsCount = Spots::with('vaccinations_count')->find($id)->count();
-        $spot = Spots::find($id);
+        $spotVacinationsCount = Spots::withCount('vaccinations_count as total_doses')
+        ->with('vaccinations_count')
+        ->find($id);
+
+        $totalDose = $spotVacinationsCount->total_doses;
+
+        $spot = Spots::with('available_vaccine.vaccine')
+        ->find($id);
 
         if (!$spot) {
             return response()->json(['Error' => 'Spots not found']);
@@ -45,7 +51,8 @@ class SpotsController extends Controller
         return response()->json([
             'date' => $request->input('date'),
             'spot' => $spot,
-            'vaccinations_count' => $spotVacinationsCount
+            'vaccinations_list' => $spotVacinationsCount->vaccinations_count,
+            'vaccinations_count' => $totalDose
         ],200); 
 
     }
